@@ -10,7 +10,11 @@
     <DefaultServices>
       <Service Name="VotingDataService">
          <StatefulService MinReplicaSetSize="3" ServiceTypeName="VotingDataServiceType" TargetReplicaSetSize="3">
-            <UniformInt64Partition HighKey="9223372036854775807" LowKey="-9223372036854775808" PartitionCount="1"/>
+            <NamedPartition>
+                <Partition Name="Partition0"/>
+                <Partition Name="Partition1"/>
+                <Partition Name="Partition2"/>
+            </NamedPartition>
          </StatefulService>         
       </Service>      
    <Service Name="VotingWeb">
