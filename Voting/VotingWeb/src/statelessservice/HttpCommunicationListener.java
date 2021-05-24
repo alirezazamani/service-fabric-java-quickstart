@@ -22,10 +22,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URL;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,11 +55,10 @@ public class HttpCommunicationListener implements CommunicationListener {
     private static final String FILE_NAME = "index.html";
     private StatelessServiceContext context;
     private com.sun.net.httpserver.HttpServer server;
-    private ServicePartitionKey partitionKey;
     private final int port;
+    private static final List<String> partitionList = new ArrayList<>(Arrays.asList("Partition0", "Partition1", "Partition2"));
 
     public HttpCommunicationListener(StatelessServiceContext context, int port) {
-        this.partitionKey = new ServicePartitionKey("Partition0");
         this.context = context;
         this.port = port;
     }
@@ -116,8 +112,12 @@ public class HttpCommunicationListener implements CommunicationListener {
                 try {                    
                     t.sendResponseHeaders(STATUS_OK,0);
                     OutputStream os = t.getResponseBody();
-                    
+                    ServicePartitionKey partitionKey = new ServicePartitionKey(partitionList.get(0));
                     HashMap<String,String> list = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").getList().get();
+                    partitionKey = new ServicePartitionKey(partitionList.get(1));
+                    list.putAll(ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").getList().get());
+                    partitionKey = new ServicePartitionKey(partitionList.get(2));
+                    list.putAll(ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").getList().get());
                     String json = new Gson().toJson(list);
                     os.write(json.getBytes(ENCODING));                   
                     os.close();
@@ -135,8 +135,11 @@ public class HttpCommunicationListener implements CommunicationListener {
                     URI r = t.getRequestURI();     
 
                     Map<String, String> params = queryToMap(r.getQuery());
-                    String itemToRemove = params.get("item");                    
-                    
+                    String itemToRemove = params.get("item");
+
+                    int index = itemToRemove.length()%3;
+                    ServicePartitionKey partitionKey = new ServicePartitionKey(partitionList.get(index));
+
                     Integer num = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").removeItem(itemToRemove).get();
                     
                     if (num != 1) 
@@ -165,6 +168,10 @@ public class HttpCommunicationListener implements CommunicationListener {
                     String itemToAdd = params.get("item");
                     
                     OutputStream os = t.getResponseBody();
+
+                    int index = itemToAdd.length()%3;
+                    ServicePartitionKey partitionKey = new ServicePartitionKey(partitionList.get(index));
+
                     Integer num = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").addItem(itemToAdd).get();
                     if (num != 1) 
                     {
