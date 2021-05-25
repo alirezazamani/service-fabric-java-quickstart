@@ -10,12 +10,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.Headers;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.FileInputStream;
+import java.io.*;
 
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
@@ -58,6 +53,11 @@ public class HttpCommunicationListener implements CommunicationListener {
     private final int port;
     private static final List<String> partitionList = new ArrayList<>(Arrays.asList("Partition0", "Partition1", "Partition2"));
 
+    File myFile = new File("/tmp/VotingWeb.txt");
+
+    FileOutputStream fos;
+    BufferedWriter bw;
+
     public HttpCommunicationListener(StatelessServiceContext context, int port) {
         this.context = context;
         this.port = port;
@@ -67,6 +67,10 @@ public class HttpCommunicationListener implements CommunicationListener {
         try {
             logger.log(Level.INFO, "Starting Server");
             server = com.sun.net.httpserver.HttpServer.create(new InetSocketAddress(this.port), 0);
+            fos = new FileOutputStream(myFile);
+            bw = new BufferedWriter(new OutputStreamWriter(fos));
+            bw.write("Start the HttpCommunicationListener\n");
+            bw.flush();
         } catch (Exception ex) {
             logger.log(Level.SEVERE, null, ex);
             throw new RuntimeException(ex);
@@ -109,7 +113,7 @@ public class HttpCommunicationListener implements CommunicationListener {
         server.createContext("/getStatelessList", new HttpHandler() {
             @Override
             public void handle(HttpExchange t) {
-                try {                    
+                try {
                     t.sendResponseHeaders(STATUS_OK,0);
                     OutputStream os = t.getResponseBody();
                     ServicePartitionKey partitionKey = new ServicePartitionKey(partitionList.get(0));
@@ -121,6 +125,8 @@ public class HttpCommunicationListener implements CommunicationListener {
                     String json = new Gson().toJson(list);
                     os.write(json.getBytes(ENCODING));                   
                     os.close();
+                    bw.write("GetStatelessList\n");
+                    bw.flush();
                 } catch (Exception e) {
                     logger.log(Level.WARNING, null, e);
                 }
@@ -139,7 +145,8 @@ public class HttpCommunicationListener implements CommunicationListener {
 
                     int index = itemToRemove.length()%3;
                     ServicePartitionKey partitionKey = new ServicePartitionKey(partitionList.get(index));
-
+                    bw.write("RemoveItem" + " : " + partitionKey.value() + "\n");
+                    bw.flush();
                     Integer num = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").removeItem(itemToRemove).get();
                     
                     if (num != 1) 
@@ -171,6 +178,9 @@ public class HttpCommunicationListener implements CommunicationListener {
 
                     int index = itemToAdd.length()%3;
                     ServicePartitionKey partitionKey = new ServicePartitionKey(partitionList.get(index));
+
+                    bw.write("AddItem" + " : " + partitionKey.value() + "\n");
+                    bw.flush();
 
                     Integer num = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").addItem(itemToAdd).get();
                     if (num != 1) 
@@ -209,6 +219,11 @@ public class HttpCommunicationListener implements CommunicationListener {
     private void stop() {
         if (null != server)
             server.stop(0);
+        try {
+            bw.close();
+        } catch (Exception e) {
+            // pass
+        }
     }
 
     @Override
