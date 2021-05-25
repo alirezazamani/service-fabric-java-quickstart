@@ -1,5 +1,6 @@
 package statefulservice;
 
+import java.io.File;
 import java.time.Duration;
 import java.util.logging.Logger;
 import java.util.logging.Level;
@@ -14,6 +15,7 @@ public class VotingDataServiceHost {
         try {
             ServiceRuntime.registerStatefulServiceAsync("VotingDataServiceType", (context)-> new VotingDataService(context), Duration.ofSeconds(10));
             logger.log(Level.INFO, "Registered stateful service of type DataServiceType");
+            File myFile = new File("/tmp/VotingDataService.txt");
             Thread.sleep(Long.MAX_VALUE);
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "Exception occurred", ex);

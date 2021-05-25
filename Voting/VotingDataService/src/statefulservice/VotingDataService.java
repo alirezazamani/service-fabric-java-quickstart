@@ -1,9 +1,7 @@
 package statefulservice;
 
-import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.List; 
+import java.io.*;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.concurrent.CompletableFuture;
@@ -50,8 +48,9 @@ class VotingDataService extends StatefulService implements VotingRPC {
     public CompletableFuture<HashMap<String,String>> getList() {
         HashMap<String, String> tempMap = new HashMap<String, String>();
 
-        try {                    
-
+        try {
+            FileOutputStream fos = new FileOutputStream("/tmp/VotingDataService.txt", true);
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
             ReliableHashMap<String, String> votesMap = stateManager
                     .<String, String> getOrAddReliableHashMapAsync(MAP_NAME).get();
                         
@@ -61,6 +60,13 @@ class VotingDataService extends StatefulService implements VotingRPC {
                 KeyValuePair<String, String> k = kv.nextElementAsync().get();
                 tempMap.put(k.getKey(), k.getValue()); 
             }
+
+            bw.write("getList" + "\n");
+            for (Map.Entry<String, String> e: tempMap.entrySet()) {
+                bw.write(e.getKey() + ":" + e.getValue() + "\n");
+            }
+            bw.flush();
+            bw.close();
             
             tx.close();                    
             
@@ -93,7 +99,7 @@ class VotingDataService extends StatefulService implements VotingRPC {
             }).get(); 
             
             tx.commitAsync().get();
-            tx.close(); 
+            tx.close();
 
             status.set(1);                            
         } catch (Exception e) {
