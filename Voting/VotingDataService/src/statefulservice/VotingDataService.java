@@ -35,13 +35,19 @@ class VotingDataService extends StatefulService implements VotingRPC {
 
     @Override
     protected List<ServiceReplicaListener> createServiceReplicaListeners() {
+        try {
+            FileOutputStream fos = new FileOutputStream("/tmp/VotingDataService.txt", true);
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+            bw.write("createServiceReplicaListeners:" + getServiceContext().getServiceTypeName() + ":" + getServiceContext().getPartitionId() + ":" + getServiceContext().getReplicaId() + ":" + "\n");
+            bw.flush();
+        } catch (Exception e) {
+            // pass
+        }
         this.stateManager = this.getReliableStateManager();
         ArrayList<ServiceReplicaListener> listeners = new ArrayList<>();
-        
         listeners.add(new ServiceReplicaListener((context) -> {
             return new FabricTransportServiceRemotingListener(context,this);
         }));
-        
         return listeners;
     }
     
@@ -67,7 +73,7 @@ class VotingDataService extends StatefulService implements VotingRPC {
             }
             bw.flush();
             bw.close();
-            
+
             tx.close();                    
             
 
@@ -112,6 +118,12 @@ class VotingDataService extends StatefulService implements VotingRPC {
     public CompletableFuture<Integer> removeItem(String itemToRemove) {
         AtomicInteger status = new AtomicInteger(-1); 
         try {
+            FileOutputStream fos = new FileOutputStream("/tmp/VotingDataService.txt", true);
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+            bw.write("RemoveItem:" + itemToRemove +"\n");
+            bw.flush();
+            bw.close();
+
             ReliableHashMap<String, String> votesMap = stateManager
                     .<String, String> getOrAddReliableHashMapAsync(MAP_NAME).get();
             

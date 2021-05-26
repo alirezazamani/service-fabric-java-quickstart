@@ -67,7 +67,8 @@ public class HttpCommunicationListener implements CommunicationListener {
         try {
             logger.log(Level.INFO, "Starting Server");
             server = com.sun.net.httpserver.HttpServer.create(new InetSocketAddress(this.port), 0);
-            fos = new FileOutputStream(myFile);
+            myFile.createNewFile();
+            fos = new FileOutputStream(myFile, true);
             bw = new BufferedWriter(new OutputStreamWriter(fos));
             bw.write("Start the HttpCommunicationListener\n");
             bw.flush();
@@ -151,8 +152,12 @@ public class HttpCommunicationListener implements CommunicationListener {
                     
                     if (num != 1) 
                     {
+                        bw.write("RemoveItemFail " + " : " + partitionKey.value() + "\n");
+                        bw.flush();
                         t.sendResponseHeaders(STATUS_ERROR, 0);
                     } else {
+                        bw.write("RemoveItemSeccess " + " : " + partitionKey.value() + "\n");
+                        bw.flush();
                         t.sendResponseHeaders(STATUS_OK,0);
                     }
 
@@ -181,13 +186,21 @@ public class HttpCommunicationListener implements CommunicationListener {
 
                     bw.write("AddItem" + " : " + partitionKey.value() + "\n");
                     bw.flush();
+                    int totalAdditions = 1000;
+                    long startTime= System.currentTimeMillis();
+                    Integer num = 1;
+                    for (int i=0; i<totalAdditions; i++) {
+                        num = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").addItem(itemToAdd).get();
+                    }
+                    long endTime = System.currentTimeMillis();
+                    long duration = endTime - startTime;
+                    bw.write("Total Add Duration: " + duration + " Average time: " + (duration/totalAdditions) + "\n");
+                    bw.flush();
 
-                    Integer num = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").addItem(itemToAdd).get();
-                    if (num != 1) 
-                    {
+                    if (num != 1) {
                         t.sendResponseHeaders(STATUS_ERROR, 0);
                     } else {
-                        t.sendResponseHeaders(STATUS_OK,0);
+                        t.sendResponseHeaders(STATUS_OK, 0);
                     }
 
                     String json = new Gson().toJson(num);
