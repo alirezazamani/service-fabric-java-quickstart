@@ -117,12 +117,8 @@ public class HttpCommunicationListener implements CommunicationListener {
                 try {
                     t.sendResponseHeaders(STATUS_OK,0);
                     OutputStream os = t.getResponseBody();
-                    ServicePartitionKey partitionKey = new ServicePartitionKey(partitionList.get(0));
-                    HashMap<String,String> list = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").getList().get();
-                    partitionKey = new ServicePartitionKey(partitionList.get(1));
-                    list.putAll(ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").getList().get());
-                    partitionKey = new ServicePartitionKey(partitionList.get(2));
-                    list.putAll(ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").getList().get());
+                    ServicePartitionKey partitionKey = new ServicePartitionKey("Partition0");
+                    HashMap<String,String> list = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/ControllerService"), partitionKey, TargetReplicaSelector.DEFAULT, "").getList().get();
                     String json = new Gson().toJson(list);
                     os.write(json.getBytes(ENCODING));                   
                     os.close();
@@ -144,20 +140,13 @@ public class HttpCommunicationListener implements CommunicationListener {
                     Map<String, String> params = queryToMap(r.getQuery());
                     String itemToRemove = params.get("item");
 
-                    int index = itemToRemove.length()%3;
-                    ServicePartitionKey partitionKey = new ServicePartitionKey(partitionList.get(index));
-                    bw.write("RemoveItem" + " : " + partitionKey.value() + "\n");
-                    bw.flush();
-                    Integer num = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").removeItem(itemToRemove).get();
-                    
+                    ServicePartitionKey partitionKey = new ServicePartitionKey("Partition0");
+                    Integer num = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/ControllerService"), partitionKey, TargetReplicaSelector.DEFAULT, "").removeItem(itemToRemove).get();
+
                     if (num != 1) 
                     {
-                        bw.write("RemoveItemFail " + " : " + partitionKey.value() + "\n");
-                        bw.flush();
                         t.sendResponseHeaders(STATUS_ERROR, 0);
                     } else {
-                        bw.write("RemoveItemSeccess " + " : " + partitionKey.value() + "\n");
-                        bw.flush();
                         t.sendResponseHeaders(STATUS_OK,0);
                     }
 
@@ -181,28 +170,17 @@ public class HttpCommunicationListener implements CommunicationListener {
                     
                     OutputStream os = t.getResponseBody();
 
-                    int index = itemToAdd.length()%3;
-                    ServicePartitionKey partitionKey = new ServicePartitionKey(partitionList.get(index));
+                    ServicePartitionKey partitionKey = new ServicePartitionKey("Partition0");
 
                     bw.write("AddItem" + " : " + partitionKey.value() + "\n");
                     bw.flush();
-                    int totalAdditions = 1;
-                    long startTime= System.currentTimeMillis();
-                    Integer num = 1;
-                    for (int i=0; i<totalAdditions; i++) {
-                        num = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").addItem(itemToAdd).get();
-                    }
-                    long endTime = System.currentTimeMillis();
-                    long duration = endTime - startTime;
-                    bw.write("Total Add Duration: " + duration + " Average time: " + (duration/totalAdditions) + "\n");
-                    bw.flush();
+                    Integer num = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/ControllerService"), partitionKey, TargetReplicaSelector.DEFAULT, "").addItem(itemToAdd).get();
 
                     if (num != 1) {
                         t.sendResponseHeaders(STATUS_ERROR, 0);
                     } else {
                         t.sendResponseHeaders(STATUS_OK, 0);
                     }
-
                     String json = new Gson().toJson(num);
                     os.write(json.getBytes(ENCODING));
                     os.close();

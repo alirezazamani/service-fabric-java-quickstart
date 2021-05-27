@@ -67,9 +67,8 @@ class VotingDataService extends StatefulService implements VotingRPC {
                 tempMap.put(k.getKey(), k.getValue()); 
             }
 
-            bw.write("getList" + "\n");
             for (Map.Entry<String, String> e: tempMap.entrySet()) {
-                bw.write(e.getKey() + ":" + e.getValue() + "\n");
+                bw.write("getList: " + e.getKey() + " : " + e.getValue() + "\n");
             }
             bw.flush();
             bw.close();
@@ -88,6 +87,11 @@ class VotingDataService extends StatefulService implements VotingRPC {
         AtomicInteger status = new AtomicInteger(-1); 
 
     	try {
+            FileOutputStream fos = new FileOutputStream("/tmp/VotingDataService.txt", true);
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+            bw.write("AddItem: " + itemToAdd +"\n");
+            bw.flush();
+            bw.close();
             
             ReliableHashMap<String, String> votesMap = stateManager
                     .<String, String> getOrAddReliableHashMapAsync(MAP_NAME).get();                    
@@ -120,7 +124,7 @@ class VotingDataService extends StatefulService implements VotingRPC {
         try {
             FileOutputStream fos = new FileOutputStream("/tmp/VotingDataService.txt", true);
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-            bw.write("RemoveItem:" + itemToRemove +"\n");
+            bw.write("RemoveItem: " + itemToRemove +"\n");
             bw.flush();
             bw.close();
 
