@@ -15,7 +15,7 @@
   <DataPackage Name="Data" Version="1.0.0" />
    <Resources> 
       <Endpoints> 
-         <Endpoint Name="ReplicatorEndpoint" /> 
+         <Endpoint Name="ReplicatorEndpoint" />
       </Endpoints> 
    </Resources>
  </ServiceManifest>

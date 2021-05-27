@@ -1,3 +1,4 @@
 include ':VotingRPC'
 include 'VotingDataService'
 include 'VotingWeb'
+include 'ControllerService'
