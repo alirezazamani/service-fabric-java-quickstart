@@ -5,6 +5,9 @@
     <ServiceManifestRef ServiceManifestName="VotingDataServicePkg" ServiceManifestVersion="1.0.0"/>
   </ServiceManifestImport>
   <ServiceManifestImport>
+    <ServiceManifestRef ServiceManifestName="ControllerServicePkg" ServiceManifestVersion="1.0.0"/>
+  </ServiceManifestImport>
+  <ServiceManifestImport>
         <ServiceManifestRef ServiceManifestName="VotingWebPkg" ServiceManifestVersion="1.0.0"/>
     </ServiceManifestImport>
     <DefaultServices>
@@ -16,11 +19,20 @@
                 <Partition Name="Partition2"/>
             </NamedPartition>
          </StatefulService>         
-      </Service>      
-   <Service Name="VotingWeb">
-            <StatelessService InstanceCount="1" ServiceTypeName="VotingWebType">
-                <SingletonPartition/>
-            </StatelessService>
-        </Service>
+      </Service>
+      <Service Name="ControllerService">
+          <StatefulService MinReplicaSetSize="3" ServiceTypeName="ControllerServiceType" TargetReplicaSetSize="3">
+          <NamedPartition>
+              <Partition Name="Partition0"/>
+              <Partition Name="Partition1"/>
+              <Partition Name="Partition2"/>
+          </NamedPartition>
+        </StatefulService>
+      </Service>
+      <Service Name="VotingWeb">
+          <StatelessService InstanceCount="1" ServiceTypeName="VotingWebType">
+              <SingletonPartition/>
+          </StatelessService>
+      </Service>
     </DefaultServices>      
 </ApplicationManifest>

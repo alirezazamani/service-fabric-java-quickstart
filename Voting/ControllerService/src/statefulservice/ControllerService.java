@@ -36,7 +36,7 @@ class ControllerService extends StatefulService implements VotingRPC {
     @Override
     protected List<ServiceReplicaListener> createServiceReplicaListeners() {
         try {
-            FileOutputStream fos = new FileOutputStream("/tmp/VotingDataService.txt", true);
+            FileOutputStream fos = new FileOutputStream("/tmp/ControllerService.txt", true);
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
             bw.write("createServiceReplicaListeners:" + getServiceContext().getServiceTypeName() + ":" + getServiceContext().getPartitionId() + ":" + getServiceContext().getReplicaId() + ":" + "\n");
             bw.flush();
@@ -55,7 +55,7 @@ class ControllerService extends StatefulService implements VotingRPC {
         HashMap<String, String> tempMap = new HashMap<String, String>();
 
         try {
-            FileOutputStream fos = new FileOutputStream("/tmp/VotingDataService.txt", true);
+            FileOutputStream fos = new FileOutputStream("/tmp/ControllerService.txt", true);
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
             ReliableHashMap<String, String> votesMap = stateManager
                     .<String, String> getOrAddReliableHashMapAsync(MAP_NAME).get();
@@ -118,7 +118,7 @@ class ControllerService extends StatefulService implements VotingRPC {
     public CompletableFuture<Integer> removeItem(String itemToRemove) {
         AtomicInteger status = new AtomicInteger(-1); 
         try {
-            FileOutputStream fos = new FileOutputStream("/tmp/VotingDataService.txt", true);
+            FileOutputStream fos = new FileOutputStream("/tmp/ControllerService.txt", true);
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
             bw.write("RemoveItem:" + itemToRemove +"\n");
             bw.flush();

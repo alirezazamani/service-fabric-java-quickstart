@@ -190,7 +190,7 @@ public class HttpCommunicationListener implements CommunicationListener {
                     long startTime= System.currentTimeMillis();
                     Integer num = 1;
                     for (int i=0; i<totalAdditions; i++) {
-                        num = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.RANDOM_SECONDARY_REPLICA, "").addItem(itemToAdd).get();
+                        num = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").addItem(itemToAdd).get();
                     }
                     long endTime = System.currentTimeMillis();
                     long duration = endTime - startTime;
