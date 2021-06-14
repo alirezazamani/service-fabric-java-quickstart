@@ -12,11 +12,9 @@
     </ServiceManifestImport>
     <DefaultServices>
       <Service Name="VotingDataService">
-         <StatefulService MinReplicaSetSize="3" ServiceTypeName="VotingDataServiceType" TargetReplicaSetSize="3">
+         <StatefulService MinReplicaSetSize="5" ServiceTypeName="VotingDataServiceType" TargetReplicaSetSize="5">
             <NamedPartition>
                 <Partition Name="Partition0"/>
-                <Partition Name="Partition1"/>
-                <Partition Name="Partition2"/>
             </NamedPartition>
          </StatefulService>         
       </Service>
@@ -32,5 +30,8 @@
               <SingletonPartition/>
           </StatelessService>
       </Service>
+      <Certificates>
+          <SecretsCertificate X509FindType="FindByThumbprint" X509FindValue="F4FDE93D55F0A666793980A159EC1E018CEAB259" />
+      </Certificates>
     </DefaultServices>      
 </ApplicationManifest>

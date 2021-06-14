@@ -66,12 +66,12 @@ class ControllerService extends StatefulService implements VotingRPC {
             ReliableHashMap<String, String> votesMap = stateManager
                     .<String, String> getOrAddReliableHashMapAsync(MAP_NAME).get();
 
-            ServicePartitionKey partitionKey = new ServicePartitionKey(partitionList.get(0));
+            ServicePartitionKey partitionKey = new ServicePartitionKey("Partition0");
             HashMap<String,String> list = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").getList().get();
-            partitionKey = new ServicePartitionKey(partitionList.get(1));
-            list.putAll(ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").getList().get());
-            partitionKey = new ServicePartitionKey(partitionList.get(2));
-            list.putAll(ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").getList().get());
+            //partitionKey = new ServicePartitionKey(partitionList.get(1));
+            //list.putAll(ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").getList().get());
+            //partitionKey = new ServicePartitionKey(partitionList.get(2));
+            //list.putAll(ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").getList().get());
 
             for (Map.Entry<String,String> e: list.entrySet()) {
                 tempMap.put(e.getKey(), e.getValue());
@@ -96,13 +96,19 @@ class ControllerService extends StatefulService implements VotingRPC {
             FileOutputStream fos = new FileOutputStream("/tmp/ControllerService.txt", true);
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
             bw.write("AddItem: " + itemToAdd +"\n");
-            bw.flush();
-            bw.close();
+
 
             int index = itemToAdd.length()%3;
-            ServicePartitionKey partitionKey = new ServicePartitionKey(partitionList.get(index));
-            Integer num = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").addItem(itemToAdd).get();
+            int total = 1;
 
+            ServicePartitionKey partitionKey = new ServicePartitionKey("Partition0");
+            long startTime = System.currentTimeMillis();
+            Integer num = ServiceProxyBase.create(VotingRPC.class, new URI("fabric:/VotingApplication/VotingDataService"), partitionKey, TargetReplicaSelector.DEFAULT, "").addItem(itemToAdd).get();
+            long finishTime = System.currentTimeMillis();
+            long totalTime = finishTime - startTime;
+            bw.write("AddItemsTime Total: " + totalTime + " and average: " + totalTime/total +"\n");
+            bw.flush();
+            bw.close();
             status.set(1);                            
         } catch (Exception e) {
             e.printStackTrace();
@@ -118,7 +124,7 @@ class ControllerService extends StatefulService implements VotingRPC {
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
             bw.write("RemoveItem: " + itemToRemove +"\n");
             int index = itemToRemove.length()%3;
-            ServicePartitionKey partitionKey = new ServicePartitionKey(partitionList.get(index));
+            ServicePartitionKey partitionKey = new ServicePartitionKey("Partition0");
             bw.write("RemoveItem" + " : " + partitionKey.value() + "\n");
             bw.flush();
             bw.close();

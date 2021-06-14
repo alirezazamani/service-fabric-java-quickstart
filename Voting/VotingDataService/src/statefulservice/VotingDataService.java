@@ -67,9 +67,9 @@ class VotingDataService extends StatefulService implements VotingRPC {
                 tempMap.put(k.getKey(), k.getValue()); 
             }
 
-            for (Map.Entry<String, String> e: tempMap.entrySet()) {
-                bw.write("getList: " + e.getKey() + " : " + e.getValue() + "\n");
-            }
+            //for (Map.Entry<String, String> e: tempMap.entrySet()) {
+                //bw.write("getList: " + e.getKey() + " : " + e.getValue() + "\n");
+            //}
             bw.flush();
             bw.close();
 
@@ -90,26 +90,33 @@ class VotingDataService extends StatefulService implements VotingRPC {
             FileOutputStream fos = new FileOutputStream("/tmp/VotingDataService.txt", true);
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
             bw.write("AddItem: " + itemToAdd +"\n");
-            bw.flush();
-            bw.close();
             
             ReliableHashMap<String, String> votesMap = stateManager
-                    .<String, String> getOrAddReliableHashMapAsync(MAP_NAME).get();                    
-            
+                    .<String, String> getOrAddReliableHashMapAsync(MAP_NAME).get();
+            int total = 100;
+            long startTime = System.currentTimeMillis();
             Transaction tx = stateManager.createTransaction();
-            votesMap.computeAsync(tx, itemToAdd, (k, v) -> {
-                if (v == null) {
-                    return "1";
-                }
-                else {
-                	int numVotes = Integer.parseInt(v);
-                	numVotes = numVotes + 1;                         	
-                    return Integer.toString(numVotes);
-                }
-            }).get(); 
-            
+            for (int i=0; i<total; i++) {
+                String newItem = itemToAdd + i;
+
+                votesMap.computeAsync(tx, newItem, (k, v) -> {
+                    if (v == null) {
+                        return "1";
+                    } else {
+                        int numVotes = Integer.parseInt(v);
+                        numVotes = numVotes + 1;
+                        return Integer.toString(numVotes);
+                    }
+                }).get();
+            }
             tx.commitAsync().get();
             tx.close();
+            long finishTime = System.currentTimeMillis();
+            long totalTime = finishTime - startTime;
+            long averageTIme = totalTime/total;
+            bw.write("AddItemsTime Total: " + totalTime + " and average: " + averageTIme +"\n");
+            bw.flush();
+            bw.close();
 
             status.set(1);                            
         } catch (Exception e) {
