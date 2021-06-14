@@ -95,10 +95,9 @@ class VotingDataService extends StatefulService implements VotingRPC {
                     .<String, String> getOrAddReliableHashMapAsync(MAP_NAME).get();
             int total = 100;
             long startTime = System.currentTimeMillis();
-            Transaction tx = stateManager.createTransaction();
             for (int i=0; i<total; i++) {
                 String newItem = itemToAdd + i;
-
+                Transaction tx = stateManager.createTransaction();
                 votesMap.computeAsync(tx, newItem, (k, v) -> {
                     if (v == null) {
                         return "1";
@@ -108,9 +107,10 @@ class VotingDataService extends StatefulService implements VotingRPC {
                         return Integer.toString(numVotes);
                     }
                 }).get();
+                tx.commitAsync().get();
+                tx.close();
             }
-            tx.commitAsync().get();
-            tx.close();
+
             long finishTime = System.currentTimeMillis();
             long totalTime = finishTime - startTime;
             long averageTIme = totalTime/total;
