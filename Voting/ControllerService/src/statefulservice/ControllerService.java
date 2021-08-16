@@ -25,7 +25,9 @@ import microsoft.servicefabric.data.utilities.AsyncEnumeration;
 import microsoft.servicefabric.data.utilities.KeyValuePair;
 
 
-import system.fabric.StatefulServiceContext; 
+import system.fabric.CancellationToken;
+import system.fabric.ReplicaRole;
+import system.fabric.StatefulServiceContext;
 
 import rpcmethods.VotingRPC; 
 
@@ -44,7 +46,7 @@ class ControllerService extends StatefulService implements VotingRPC {
         try {
             FileOutputStream fos = new FileOutputStream("/tmp/ControllerService.txt", true);
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-            bw.write("createServiceReplicaListeners:" + getServiceContext().getServiceTypeName() + ":" + getServiceContext().getPartitionId() + ":" + getServiceContext().getReplicaId() + ":" + "\n");
+            bw.write("createServiceReplicaListeners:" + getServiceContext().getServiceTypeName() + ":" + getServiceContext().getPartitionId() + ":" + getServiceContext().getReplicaId() + "\n");
             bw.flush();
         } catch (Exception e) {
             // pass
@@ -55,6 +57,21 @@ class ControllerService extends StatefulService implements VotingRPC {
             return new FabricTransportServiceRemotingListener(context,this);
         }));
         return listeners;
+    }
+
+    // This is newly added
+    @Override
+    protected CompletableFuture<?> onChangeRoleAsync(ReplicaRole newRole, CancellationToken cancellationToken) {
+        try {
+            FileOutputStream fos = new FileOutputStream("/tmp/ControllerService.txt", true);
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+            bw.write("onChangeRoleAsync: " + newRole.name() + " : " + getServiceContext().getPartitionId() + " : " + getServiceContext().getReplicaId() + "\n");
+            bw.flush();
+        } catch (Exception e) {
+            // pass
+        }
+
+        return super.onChangeRoleAsync(newRole, cancellationToken);
     }
     
     public CompletableFuture<HashMap<String,String>> getList() {
